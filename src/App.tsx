@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import 'bulma/css/bulma.css';
 import '@fortawesome/fontawesome-free/css/all.css';
 
@@ -8,14 +8,11 @@ import { FilterType, TodoFilter } from './components/TodoFilter';
 import { TodoModal } from './components/TodoModal';
 import { Loader } from './components/Loader';
 import { Todo } from './types/Todo';
-import { getPosts } from './servises/todos';
-import { getUsers } from './servises/users';
-import { User } from './types/User';
+import { getPosts } from './services/todos';
 import { wait } from './utils/httpClient';
 
 export const App: React.FC = () => {
   const [todosFromServer, setTodosFromServer] = useState<Todo[]>([]);
-  const [users, setUsers] = useState<User[]>();
   const [selectedFilter, setSelectedFilter] = useState<FilterType>('all');
   const [query, setQuery] = useState('');
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
@@ -24,35 +21,28 @@ export const App: React.FC = () => {
   useEffect(() => {
     setLoading(true);
 
-    wait(1000);
-    getUsers().then(setUsers);
-    getPosts()
-      .then(setTodosFromServer)
+    wait(1000)
+      .then(() => {
+        return Promise.all([getPosts().then(setTodosFromServer)]);
+      })
       .then(() => {
         setLoading(false);
       });
   }, []);
 
-  const fullDataPost = todosFromServer.map(post => {
-    const foundedUser = users?.find(user => user.id === post.userId);
+  const visibleTodos = useMemo(() => {
+    return todosFromServer.filter(todo => {
+      const matchesStatus =
+        selectedFilter === 'all' ||
+        (selectedFilter === 'active' && !todo.completed) ||
+        (selectedFilter === 'completed' && todo.completed);
 
-    return {
-      ...post,
-      user: foundedUser || null,
-    };
-  });
+      const normalizedQuery = query.toLowerCase().trim();
+      const matchesQuery = todo.title.toLowerCase().includes(normalizedQuery);
 
-  const visibleTodos = fullDataPost.filter(todo => {
-    const matchesStatus =
-      selectedFilter === 'all' ||
-      (selectedFilter === 'active' && !todo.completed) ||
-      (selectedFilter === 'completed' && todo.completed);
-
-    const normalizedQuery = query.toLowerCase().trim();
-    const matchesQuery = todo.title.toLowerCase().includes(normalizedQuery);
-
-    return matchesStatus && matchesQuery;
-  });
+      return matchesStatus && matchesQuery;
+    });
+  }, [query, selectedFilter, todosFromServer]);
 
   return (
     <>

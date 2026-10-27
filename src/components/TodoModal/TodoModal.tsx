@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import classNames from 'classnames';
 import { Loader } from '../Loader';
 import { Todo } from '../../types/Todo';
 import { User } from '../../types/User';
@@ -16,8 +17,8 @@ export const TodoModal: React.FC<Props> = ({ enterTodo, onSelectedTodo }) => {
 
   useEffect(() => {
     setLoading(true);
-    wait(1000);
-    getUser(enterTodo.userId)
+    wait(1000)
+      .then(() => getUser(enterTodo.userId))
       .then(fetchedUser => {
         setUser(fetchedUser);
       })
@@ -61,9 +62,10 @@ export const TodoModal: React.FC<Props> = ({ enterTodo, onSelectedTodo }) => {
             <p className="block" data-cy="modal-user">
               {/* <strong className="has-text-success">Done</strong> */}
               <strong
-                className={
-                  enterTodo.completed ? 'has-text-success' : 'has-text-danger'
-                }
+                className={classNames({
+                  'has-text-success': enterTodo.completed,
+                  'has-text-danger': !enterTodo.completed,
+                })}
               >
                 {enterTodo.completed ? `Done` : `Planned`}
               </strong>
