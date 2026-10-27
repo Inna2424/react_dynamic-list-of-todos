@@ -2,5 +2,5 @@ import { User } from '../types/User';
 import { getData } from '../utils/httpClient';
 
 export function getUser(userId: number) {
-  return getData<User[]>(`api/users/${userId}.json`);
+  return getData<User>(`api/users/${userId}.json`);
 }

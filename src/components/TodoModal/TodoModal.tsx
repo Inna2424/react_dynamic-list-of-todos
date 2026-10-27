@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import { Loader } from '../Loader';
 import { Todo } from '../../types/Todo';
 import { User } from '../../types/User';
-import { getUser } from '../../api';
+import { getUser } from '../../services/users';
 import { wait } from '../../utils/httpClient';
 
 interface Props {
